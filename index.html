@@ -124,24 +124,26 @@
   </div>
 
   <script type="module">
-    // 1) Firebase Console에서 Web app을 만든 뒤, 아래 firebaseConfig를 실제 값으로 교체하세요.
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAn3tLnNJOW4gTSBrGGKiKxOdCRwhj_Sp4",
-  authDomain: "materials-peer-evaluation.firebaseapp.com",
-  projectId: "materials-peer-evaluation",
-  storageBucket: "materials-peer-evaluation.firebasestorage.app",
-  messagingSenderId: "108173831944",
-  appId: "1:108173831944:web:7d653c3868a144d11706bd"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyAn3tLnNJOW4gTSBrGGKiKxOdCRwhj_Sp4",
+    authDomain: "materials-peer-evaluation.firebaseapp.com",
+    projectId: "materials-peer-evaluation",
+    storageBucket: "materials-peer-evaluation.firebasestorage.app",
+    messagingSenderId: "108173831944",
+    appId: "1:108173831944:web:7d653c3868a144d11706bd"
+  };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+  const firebaseApp = initializeApp(firebaseConfig);
+  const db = getFirestore(firebaseApp);
 
     // 2) 팀별 학생 명단: 필요하면 여기만 수정하면 됩니다.
     const teams = [

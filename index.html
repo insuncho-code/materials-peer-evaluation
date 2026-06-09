@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>재료종합설계 Peer Evaluation</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 36px 18px 60px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.08);
+      border: 1px solid #e8edf5;
+    }
+    h1 { margin: 0 0 10px; font-size: 28px; }
+    h2 { margin: 0 0 18px; font-size: 22px; }
+    p { line-height: 1.6; }
+    .muted { color: #667085; font-size: 14px; }
+    label { display: block; margin: 18px 0 8px; font-weight: 700; }
+    input, select, button {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 12px;
+      border: 1px solid #ccd6e5;
+      font-size: 16px;
+      background: #fff;
+    }
+    input:focus, select:focus {
+      outline: 3px solid #dceafe;
+      border-color: #477be8;
+    }
+    button {
+      margin-top: 22px;
+      border: none;
+      background: #1f5eff;
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button:hover { background: #154bd1; }
+    button:disabled { background: #a5b4ca; cursor: not-allowed; }
+    .danger { color: #b42318; font-weight: 700; }
+    .ok { color: #067647; font-weight: 700; }
+    .team-box {
+      background: #f8fafc;
+      border: 1px solid #e4e7ec;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 18px 0;
+    }
+    .pill {
+      display: inline-block;
+      margin: 4px 6px 4px 0;
+      padding: 7px 10px;
+      background: #eef4ff;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+    .hidden { display: none; }
+    .small { font-size: 13px; }
+    .footer { margin-top: 18px; color: #98a2b3; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>재료종합설계 Peer Evaluation</h1>
+      <p class="muted">본 평가는 팀 내 연구 참여도 및 기여도 평가를 위한 것입니다. 제출 후에는 수정할 수 없습니다.</p>
+
+      <div id="setupWarning" class="team-box danger hidden">
+        Firebase 설정이 아직 입력되지 않았습니다. 교수자/관리자는 index.html의 firebaseConfig 값을 먼저 입력해 주세요.
+      </div>
+
+      <section id="loginSection">
+        <h2>학생 정보 입력</h2>
+        <label for="studentName">이름</label>
+        <input id="studentName" autocomplete="name" placeholder="예: 김정은 또는 조인선 테스트" />
+
+        <label for="studentId">학번</label>
+        <input id="studentId" inputmode="numeric" autocomplete="off" placeholder="예: 202012345" />
+
+        <button id="startBtn">평가 시작</button>
+        <p id="loginMsg" class="danger"></p>
+      </section>
+
+      <section id="evalSection" class="hidden">
+        <h2>팀원 평가</h2>
+        <p><b id="who"></b> 학생은 <b id="teamName"></b> 소속입니다.</p>
+        <div class="team-box">
+          <div class="muted">평가 대상 팀원</div>
+          <div id="memberList"></div>
+        </div>
+
+        <label for="bestMember">연구 참여도 및 기여도가 가장 우수한 팀원 1명</label>
+        <select id="bestMember"></select>
+
+        <label for="weakMember">연구 참여도 및 기여도가 가장 부족한 팀원 1명</label>
+        <select id="weakMember"></select>
+
+        <p class="muted small">본인 이름은 선택지에서 제외됩니다. 우수/부족 팀원은 서로 다르게 선택해야 합니다.</p>
+        <button id="submitBtn">최종 제출</button>
+        <p id="evalMsg" class="danger"></p>
+      </section>
+
+      <section id="doneSection" class="hidden">
+        <h2 class="ok">제출 완료</h2>
+        <p>Peer evaluation이 정상적으로 제출되었습니다. 제출 후에는 수정할 수 없습니다.</p>
+      </section>
+
+      <div class="footer">Ajou University · Materials Capstone Design</div>
+    </div>
+  </div>
+
+  <script type="module">
+    // 1) Firebase Console에서 Web app을 만든 뒤, 아래 firebaseConfig를 실제 값으로 교체하세요.
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // 2) 팀별 학생 명단: 필요하면 여기만 수정하면 됩니다.
+    const teams = [
+      { team: "서형탁 교수님 팀", professor: "서형탁", members: ["김정은", "주현선", "윤회수", "박진서", "김윤종"] },
+      { team: "안병민 교수님 팀", professor: "안병민", members: ["문관규", "윤태욱", "유민", "채수민", "김동현"] },
+      { team: "조인선 교수님 팀", professor: "조인선", members: ["이동훈", "임종민", "박준석", "배정원", "김요한", "성태주"] },
+      { team: "류학기 교수님 팀", professor: "류학기", members: ["양나영", "김민재", "김서진", "신예찬", "최희은"] },
+      { team: "조성범 교수님 팀", professor: "조성범", members: ["김성준", "문서준", "김재환", "최완규", "유재선"] },
+      { team: "박진성 교수님 팀", professor: "박진성", members: ["박지환", "전병수", "이서유", "이유진", "전성연"] },
+      { team: "김장환 교수님 팀", professor: "김장환", members: ["윤해은", "김진성", "박수민", "이현지", "지서현"] },
+      { team: "김준규 교수님 팀", professor: "김준규", members: ["고승우", "박주은", "우찬식", "오세영", "홍정원"] }
+    ];
+
+    // 3) 테스트 계정: 실제 팀원 선택지에는 포함되지 않고, 해당 팀 평가 화면만 확인할 수 있습니다.
+    // 이름: 조인선 / 학번: 00000000 또는 임의 입력
+    const testAccounts = [
+      { name: "조인선", team: "조인선 교수님 팀" }
+    ];
+
+    const firebaseConfigured = !firebaseConfig.apiKey.includes("YOUR_") && !firebaseConfig.projectId.includes("YOUR_");
+    const setupWarning = document.getElementById("setupWarning");
+    if (!firebaseConfigured) setupWarning.classList.remove("hidden");
+
+    let db = null;
+    let app = null;
+    let currentStudent = null;
+    let currentTeam = null;
+
+    async function loadFirebase() {
+      if (!firebaseConfigured) return;
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+      const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      window.firebaseFns = { doc, getDoc, setDoc, serverTimestamp };
+    }
+    loadFirebase();
+
+    function normalizeName(s) {
+      return (s || "").replace(/\s/g, "").trim();
+    }
+    function normalizeId(s) {
+      return (s || "").replace(/\s/g, "").trim();
+    }
+    async function sha256(text) {
+      const data = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+    function findStudent(name) {
+      const n = normalizeName(name);
+
+      const test = testAccounts.find(a => normalizeName(a.name) === n);
+      if (test) {
+        const team = teams.find(t => t.team === test.team);
+        if (team) return { team, name: test.name, isTest: true };
+      }
+
+      for (const t of teams) {
+        const matched = t.members.find(m => normalizeName(m) === n);
+        if (matched) return { team: t, name: matched, isTest: false };
+      }
+      return null;
+    }
+    function fillSelect(selectEl, names) {
+      selectEl.innerHTML = '<option value="">선택하세요</option>';
+      names.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        selectEl.appendChild(opt);
+      });
+    }
+    function show(sectionId) {
+      ["loginSection", "evalSection", "doneSection"].forEach(id => document.getElementById(id).classList.add("hidden"));
+      document.getElementById(sectionId).classList.remove("hidden");
+    }
+
+    document.getElementById("startBtn").addEventListener("click", async () => {
+      const msg = document.getElementById("loginMsg");
+      msg.textContent = "";
+      const nameInput = normalizeName(document.getElementById("studentName").value);
+      const idInput = normalizeId(document.getElementById("studentId").value);
+
+      if (!firebaseConfigured) {
+        msg.textContent = "관리자 설정이 완료되지 않아 아직 평가를 시작할 수 없습니다.";
+        return;
+      }
+      if (!nameInput || !idInput) {
+        msg.textContent = "이름과 학번을 모두 입력해 주세요.";
+        return;
+      }
+      const found = findStudent(nameInput);
+      if (!found) {
+        msg.textContent = "입력한 이름이 팀 명단에 없습니다. 이름을 다시 확인해 주세요.";
+        return;
+      }
+      if (!db || !window.firebaseFns) {
+        msg.textContent = "데이터베이스 연결 중입니다. 잠시 후 다시 눌러 주세요.";
+        return;
+      }
+
+      const submissionId = await sha256(`${found.name}|${idInput}`);
+      const { doc, getDoc } = window.firebaseFns;
+      const ref = doc(db, "peerEvaluations", submissionId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        show("doneSection");
+        return;
+      }
+
+      currentStudent = { name: found.name, studentId: idInput, submissionId, isTest: found.isTest };
+      currentTeam = found.team;
+
+      const others = currentTeam.members.filter(m => normalizeName(m) !== normalizeName(currentStudent.name));
+      document.getElementById("who").textContent = `${currentStudent.name}`;
+      document.getElementById("teamName").textContent = currentTeam.team;
+      document.getElementById("memberList").innerHTML = others.map(n => `<span class="pill">${n}</span>`).join("");
+      fillSelect(document.getElementById("bestMember"), others);
+      fillSelect(document.getElementById("weakMember"), others);
+      show("evalSection");
+    });
+
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      const msg = document.getElementById("evalMsg");
+      msg.textContent = "";
+      const best = document.getElementById("bestMember").value;
+      const weak = document.getElementById("weakMember").value;
+      if (!best || !weak) {
+        msg.textContent = "우수한 팀원과 부족한 팀원을 각각 1명씩 선택해 주세요.";
+        return;
+      }
+      if (best === weak) {
+        msg.textContent = "우수한 팀원과 부족한 팀원은 서로 다르게 선택해야 합니다.";
+        return;
+      }
+      const confirmed = confirm("제출 후에는 수정할 수 없습니다. 최종 제출하시겠습니까?");
+      if (!confirmed) return;
+
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "제출 중...";
+      try {
+        const { doc, getDoc, setDoc, serverTimestamp } = window.firebaseFns;
+        const ref = doc(db, "peerEvaluations", currentStudent.submissionId);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          show("doneSection");
+          return;
+        }
+        await setDoc(ref, {
+          name: currentStudent.name,
+          studentId: currentStudent.studentId,
+          team: currentTeam.team,
+          professor: currentTeam.professor,
+          bestMember: best,
+          weakMember: weak,
+          submittedAt: serverTimestamp(),
+          isTest: currentStudent.isTest,
+          userAgent: navigator.userAgent
+        });
+        localStorage.setItem("peerEvaluationSubmitted", "true");
+        show("doneSection");
+      } catch (e) {
+        console.error(e);
+        msg.textContent = "제출 중 오류가 발생했습니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요.";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "최종 제출";
+      }
+    });
+  </script>
+</body>
+</html>

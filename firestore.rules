@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /peerEvaluations/{submissionId} {
+      allow create: if !exists(/databases/$(database)/documents/peerEvaluations/$(submissionId));
+      allow read, update, delete: if false;
+    }
+  }
+}
